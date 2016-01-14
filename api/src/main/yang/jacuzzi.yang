@@ -1,0 +1,152 @@
+//This file contains a YANG data definition. This data model defines
+  //a Jacuzzi, which is based on the SNMP MIB Toaster example 
+  module jacuzzi {
+
+    //The yang version - today only 1 version exists. If omitted defaults to 1.
+    yang-version 1; 
+
+    //a unique namespace for this toaster module, to uniquely identify it from other modules that may have the same name.
+    namespace
+      "http://netconfcentral.org/ns/jacuzzi"; 
+
+    //a shorter prefix that represents the namespace for references used below
+    prefix jacuz;
+
+    //Defines the organization which defined / owns this .yang file.
+    organization "Inocybe Jacuzzi Association";
+
+    //defines the primary contact of this yang file.
+    contact
+      "Christophe Botek <cbotek@inocybe.com>";
+
+    //provides a description of this .yang file.
+    description
+      "YANG version of the TOASTER-MIB.";
+
+    //defines the dates of revisions for this yang file
+    revision "2016-01-12" {
+      description
+        "Jacuzzi module in progress.";
+    }
+
+    //declares a base identity, in this case a base type for different types of hoze.
+    identity hoze-type {
+      description
+        "Base for all hoze types supported by the jacuzzi. New hoze types not listed here nay be added in the future.";
+    }
+
+    //the below identity section is used to define globally unique identities
+    //Note - removed a number of different types of bread to shorten the text length.
+    identity small-hoze {
+      base hoze-type;       //logically extending the declared hoze-type above.
+      description "small sized hoze.";  //free text description of this type.
+    }
+    identity medium-hoze {
+      base hoze-type;       //logically extending the declared hoze-type above.
+      description "medium sized hoze.";  //free text description of this type.
+    }
+
+    identity large-hoze {
+      base hoze-type;       //logically extending the declared hoze-type above.
+      description "large sized hoze.";  //free text description of this type.
+    }
+
+    //defines a new "Type" string type which limits the length
+    typedef DisplayString {
+      type string {
+        length "0 .. 255";
+      }
+      description
+        "YANG version of the SMIv2 DisplayString TEXTUAL-CONVENTION.";
+      reference
+        "RFC 2579, section 2.";
+
+    }
+
+    // This definition is the top-level configuration "item" that defines a Jacuzzi. The "presence" flag connotes there
+    // can only be one instance of a Jacuzzi which, if present, indicates the service is available.
+    container jacuzzi {
+      presence
+        "Indicates the jacuzzi service is available";
+      description
+        "Top-level container for all jacuzzi database objects.";
+
+      //Note in these three attributes that config = false. This indicates that they are operational attributes.
+      leaf jacuzziManufacturer {
+        type DisplayString;
+        config false;
+        mandatory true;
+        description
+          "The name of the jacuzzi's manufacturer. For instance, Microsoft jacuzzi.";
+      }
+
+      leaf jacuzziModelNumber {
+        type DisplayString;
+        config false;
+        mandatory true;
+        description
+          "The name of the jacuzzi's model. For instance, Radiant Automatic.";
+      }
+
+      leaf jacuzziStatus {
+        type enumeration {
+          enum "empty" {
+            value 1;
+            description
+              "The jacuzzi is empty. No program is being performed.";
+          }
+          enum "full" {
+            value 2;
+            description
+              "The jacuzzi is full of water and being used.";
+          }
+        }
+        config false;
+        mandatory true;
+        description
+          "This variable indicates the current state of  the jacuzzi.";
+      }
+      leaf massageFactor {
+       type uint32;
+       config true;
+       default 1000;
+       description
+         "The massage factor. Basically, the number of ms to multiple the programLengh value by.";
+      }
+    }  // jacuzzi container
+    
+    
+    
+    rpc start-program {
+     description
+       "Start a jacuzzi program. The programDone notification will be sent when the program is finished.
+        An 'in-use' error will be returned if program is already being made. A 'resource-denied' error will 
+        be returned if the jacuzzi service is disabled.";
+
+     input {
+       leaf programLengh {
+         type uint32 {
+           range "1 .. 10";
+         }
+         default '5';
+         description
+           "This variable controls how long a program is. It should be on a scale of 1 to 10 (in minutes).";
+       }
+
+       leaf jacuzziHozeType {
+         type identityref {
+           base hoze-type;
+         }
+         default 'small-hoze';
+         description
+           "This variable inform the jacuzzi what type of hoze it should use to perform a program";
+       }
+     }
+   }  // rpc start-program
+
+   // action to cancel making toast - takes no input parameters
+   rpc cancel-program {
+     description
+       "Cancel Jacuzzi program";
+   }  // rpc cancel-program
+  }  // jacuzzi module

@@ -1,0 +1,70 @@
+module jacuzzi-impl {
+    yang-version 1;
+    namespace "urn:opendaylight:params:xml:ns:yang:jacuzzi:impl";
+    prefix "jacuzzi-impl";
+
+    import config { prefix config; revision-date 2013-04-05; }
+    import opendaylight-md-sal-binding { prefix mdsal; revision-date 2013-10-28; }
+	import rpc-context { prefix rpcx; revision-date 2013-06-17; }
+
+    description
+        "Service definition for jacuzzi project";
+
+    revision "2014-12-10" {
+        description
+            "Initial revision";
+    }
+
+    identity jacuzzi {
+        base config:module-type;
+        config:java-name-prefix Jacuzzi;
+    }
+
+    augment "/config:modules/config:module/config:configuration" {
+        case jacuzzi {
+            when "/config:modules/config:module/config:type = 'jacuzzi'";
+            container data-broker {
+                uses config:service-ref {
+                    refine type {
+                        mandatory false;
+                        config:required-identity mdsal:binding-async-data-broker;
+                    }
+                }
+            }
+            container rpc-registry {
+               uses config:service-ref {
+                   refine type {
+                       mandatory true;
+                       config:required-identity mdsal:binding-rpc-registry;
+                   }
+               }
+           }
+        }
+    }
+    augment "/config:modules/config:module/config:state" {
+        case jacuzzi {
+            when "/config:modules/config:module/config:type = 'jacuzzi'";
+
+            leaf program-made {
+                type uint32;
+            }
+
+            rpcx:rpc-context-instance "clear-program-made-rpc";
+        }
+    }
+
+    identity clear-program-made-rpc;
+
+    rpc clear-program-made  {
+        description
+          "JMX call to clear the program-made counter.";
+
+        input {
+            uses rpcx:rpc-context-ref {
+                refine context-instance {
+                    rpcx:rpc-context-instance clear-program-made-rpc;
+                }
+            }
+        }
+    }
+}
