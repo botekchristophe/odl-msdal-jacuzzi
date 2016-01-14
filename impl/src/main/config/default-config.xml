@@ -28,6 +28,10 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                         <type xmlns:binding="urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding">binding:binding-rpc-registry</type>
                         <name>binding-rpc-broker</name>
           </rpc-registry>
+          <notification-service>
+                       <type xmlns:binding="urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding">binding:binding-notification-service</type>
+                       <name>binding-notification-broker</name>
+                   </notification-service>
         </module>
         <module>
                  <type xmlns:pool="urn:opendaylight:params:xml:ns:yang:pool-service:impl">pool:pool-service-impl</type>
@@ -36,15 +40,19 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                     <type xmlns:binding="urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding">binding:binding-rpc-registry</type>
                     <name>binding-rpc-broker</name>
                  </rpc-registry>
+                 <notification-service>
+                       <type xmlns:binding="urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding">binding:binding-notification-service</type>
+                       <name>binding-notification-broker</name>
+                   </notification-service>
                </module>
       </modules>
       <services xmlns="urn:opendaylight:params:xml:ns:yang:controller:config">
                <service>
                    <type xmlns:pool="urn:opendaylight:params:xml:ns:yang:pool-service:impl">
-                       pool:pool-service-impl
+                       pool:pool-service
                    </type>
                    <instance>
-                       <name>pool-service-impl</name>
+                       <name>pool-service</name>
                        <provider>/modules/module[type='pool-service-impl'][name='pool-service-impl']</provider>
                    </instance>
                </service>

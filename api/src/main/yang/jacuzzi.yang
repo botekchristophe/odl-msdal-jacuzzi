@@ -149,4 +149,36 @@
      description
        "Cancel Jacuzzi program";
    }  // rpc cancel-program
+   
+   rpc restock-jacuzzi {
+       description
+         "Restocks the jacuzzi with the amount of cash specified.";
+       
+  
+       input {
+           leaf amountOfCashToStock {
+               type uint32;
+               description
+                 "Indicates the amount of cash to re-stock";
+           }
+       }
+   }
+   
+
+   notification jacuzziOutOfCash {
+     description
+       "Indicates that the jacuzzi has run of out cash.";
+   }  // notification toasterOutOfStock
+   
+
+   notification jacuzziRestocked {
+     description
+       "Indicates that the jacuzzi has run of out bread.";
+     leaf amountOfCash {
+       type uint32;
+       description
+         "Indicates the amount of bread that was re-stocked";
+     }
+   }  // notification toasterRestocked
+   
   }  // jacuzzi module

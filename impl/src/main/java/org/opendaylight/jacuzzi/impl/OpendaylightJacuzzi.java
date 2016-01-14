@@ -16,12 +16,17 @@ import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeEvent;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.common.api.data.OptimisticLockFailedException;
 import org.opendaylight.controller.md.sal.common.api.data.TransactionCommitFailedException;
+import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.DisplayString;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.Jacuzzi;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.Jacuzzi.JacuzziStatus;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziBuilder;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziData;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziOutOfCashBuilder;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziRestocked;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziRestockedBuilder;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziService;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.RestockJacuzziInput;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.StartProgramInput;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.jacuzzi.impl.rev141210.JacuzziRuntimeMXBean;
 import org.opendaylight.yangtools.yang.binding.DataObject;
@@ -55,8 +60,13 @@ public class OpendaylightJacuzzi implements AutoCloseable, JacuzziService, Jacuz
 
     private final AtomicReference<Future<?>> currentStartProgramTask = new AtomicReference<>();
     private final AtomicLong programMade = new AtomicLong(0);
-    private final AtomicLong amountOfDollar = new AtomicLong(100);
+    private final AtomicLong amountOfCash = new AtomicLong(100);
     private AtomicLong massageFactor = new AtomicLong( 1000 );
+
+    private NotificationProviderService notificationProvider;
+    public void setNotificationProvider(NotificationProviderService salService) {
+        this.notificationProvider = salService;
+    }
 
     public OpendaylightJacuzzi(){
         executor = Executors.newFixedThreadPool(1);
@@ -250,21 +260,11 @@ public class OpendaylightJacuzzi implements AutoCloseable, JacuzziService, Jacuz
 
             programMade.incrementAndGet();
 
-            amountOfDollar.getAndDecrement();
+            amountOfCash.getAndDecrement();
             if( outOfDollar() ) {
                 LOG.info( "Jacuzzi out of $$!" );
 
-                /**notificationProvider.publish( new ToasterOutOfBreadBuilder().build() );
-                 *
-                 *
-                 *
-                 *TODO
-                 *
-                 *
-                 *
-                 *
-                 *
-                 ***/
+                notificationProvider.publish( new JacuzziOutOfCashBuilder().build() );
             }
 
             // Set the Toaster status back to up - this essentially releases the toasting lock.
@@ -288,7 +288,7 @@ public class OpendaylightJacuzzi implements AutoCloseable, JacuzziService, Jacuz
        }
     }
     private boolean outOfDollar(){
-        return amountOfDollar.get()==0;
+        return amountOfCash.get()==0;
     }
 
     @Override
@@ -323,4 +323,22 @@ public class OpendaylightJacuzzi implements AutoCloseable, JacuzziService, Jacuz
 
     }
 
+    /**
+     * RestConf RPC call implemented from the JacuzziService interface.
+     * Restocks the cash for the jacuzzi and sends a ToasterRestocked notification.
+     */
+    @Override
+    public Future<RpcResult<Void>> restockJacuzzi(RestockJacuzziInput input) {
+        LOG.info( "restockToaster: " + input );
+
+        amountOfCash.set( input.getAmountOfCashToStock() );
+
+        if( amountOfCash.get() > 0 ) {
+            JacuzziRestocked reStockedNotification =
+                new JacuzziRestockedBuilder().setAmountOfCash( input.getAmountOfCashToStock() ).build();
+            notificationProvider.publish( reStockedNotification );
+        }
+
+        return Futures.immediateFuture(RpcResultBuilder.<Void> success().build());
+    }
 }

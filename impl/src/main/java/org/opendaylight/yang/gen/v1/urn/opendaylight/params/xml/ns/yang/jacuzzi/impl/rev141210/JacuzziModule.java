@@ -43,7 +43,7 @@ public class JacuzziModule extends org.opendaylight.yang.gen.v1.urn.opendaylight
                 .registerDataChangeListener(LogicalDatastoreType.CONFIGURATION, opendaylightJacuzzi.JACUZZI_IID,
                         opendaylightJacuzzi, DataChangeScope.SUBTREE);
         final JacuzziRuntimeRegistration runtimeReg = getRootRuntimeBeanRegistratorWrapper().register( opendaylightJacuzzi);
-
+        opendaylightJacuzzi.setNotificationProvider(getNotificationServiceDependency());
         // Wrap toaster as AutoCloseable and close registrations to md-sal at
         // close(). The close method is where you would generally clean up thread pools
         // etc.

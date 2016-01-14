@@ -39,6 +39,14 @@ module jacuzzi-impl {
                    }
                }
            }
+           container notification-service {
+               uses config:service-ref {
+                   refine type {
+                       mandatory true;
+                       config:required-identity mdsal:binding-notification-service;
+                   }
+               }
+           }
         }
     }
     augment "/config:modules/config:module/config:state" {

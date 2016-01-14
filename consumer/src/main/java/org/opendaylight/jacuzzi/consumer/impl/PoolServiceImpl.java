@@ -9,6 +9,9 @@ import java.util.concurrent.Future;
 import org.opendaylight.jacuzzi.consumer.api.PoolService;
 import org.opendaylight.jacuzzi.consumer.api.TowelType;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.HozeType;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziListener;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziOutOfCash;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziRestocked;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.JacuzziService;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.StartProgramInput;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.jacuzzi.rev160112.StartProgramInputBuilder;
@@ -29,7 +32,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
-public class PoolServiceImpl implements PoolService, PoolServiceRuntimeMXBean{
+public class PoolServiceImpl implements PoolService, PoolServiceRuntimeMXBean, JacuzziListener{
 
     private static final Logger log = LoggerFactory.getLogger( PoolServiceImpl.class );
 
@@ -134,6 +137,19 @@ public class PoolServiceImpl implements PoolService, PoolServiceRuntimeMXBean{
         }
 
         return Boolean.FALSE;
+    }
+
+    @Override
+    public void onJacuzziOutOfCash(JacuzziOutOfCash notification) {
+        log.info( "jacuzziOutOfCash notification" );
+        jacuzziOutOfCash=true;
+    }
+
+    @Override
+    public void onJacuzziRestocked(JacuzziRestocked notification) {
+        log.info( "jacuzziOutOfCash notification - amountOfCash: " + notification.getAmountOfCash() );
+        jacuzziOutOfCash=false;
+
     }
 
 }
